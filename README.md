@@ -17,7 +17,7 @@
 	git clone https://github.com/VeraSobal/python-project-phonebook.git
 - переходим в директорий проекта
 ###
-	cd cd python-project-phonebook
+	cd python-project-phonebook
 - в терминале выполняем 
 ###
 	src/phonebook.py
