@@ -101,10 +101,12 @@ def print_data(data, lines_per_page=20, start_col=0):
             print("\n")
         i += 1
 
+
 def check_data(data_item, headers_name):
-    pattern=CHECK_PATTERNS_DICT[headers_name]["pattern"]
+    pattern = CHECK_PATTERNS_DICT[headers_name]["pattern"]
     if not re.match(pattern, data_item.lower()):
         return CHECK_PATTERNS_DICT[headers_name]["hint"]
+
 
 def find_data(data, data_to_find, col_index=-1):
     # поиск данных
@@ -166,12 +168,12 @@ def print_all_data_main(data):
 
 def check_input_data(str_for_input, default_input, headers_name):
     # цикл проверки для ввода данных
-    hint=""
+    hint = ""
     while hint is not None:
-        data_item=input(str_for_input) or default_input
-        hint=check_data(data_item, headers_name)
+        data_item = input(str_for_input) or default_input
+        hint = check_data(data_item, headers_name)
         if hint:
-            print(hint+ " Повторите ввод данных.")
+            print(hint + " Повторите ввод данных.")
     return data_item
 
 
@@ -179,8 +181,9 @@ def create_input_data_list(input_names_list, default_input_list):
     # ввод новых данных
     input_data = []
     for i in range(len(input_names_list)):
-        str_for_input=f"{input_names_list[i]} {default_input_list[i]} => "
-        data_item=check_input_data(str_for_input, default_input_list[i], HEADERS[i+1])
+        str_for_input = f"{input_names_list[i]} {default_input_list[i]} => "
+        data_item = check_input_data(
+            str_for_input, default_input_list[i], HEADERS[i+1])
         input_data.append(data_item.strip())
     return input_data
 
@@ -188,8 +191,9 @@ def create_input_data_list(input_names_list, default_input_list):
 def append_data_main(data):
     # выполнение пункта Создать контакт и вывод результата
     print("Введите данные")
-    default_input_list=[""]*len(CREATE_NEW_CONTACT_MENU)
-    input_data = create_input_data_list(CREATE_NEW_CONTACT_MENU, default_input_list)
+    default_input_list = [""]*len(CREATE_NEW_CONTACT_MENU)
+    input_data = create_input_data_list(
+        CREATE_NEW_CONTACT_MENU, default_input_list)
     print("\nДобавлены данные:")
     new_id = (1 if len(data) == 0 else max([int(x[0]) for x in data])+1)
     print_data(append_data(data, input_data, new_id))
@@ -228,8 +232,9 @@ def update_data_main(data):
     if result != []:
         data_to_update = filter_data(data, result)
         print_data(data_to_update)
-        default_input_list=data_to_update[0][1:] #[1:] - чтобы без id
-        input_data = create_input_data_list(CREATE_NEW_CONTACT_MENU, default_input_list)
+        default_input_list = data_to_update[0][1:]  # [1:] - чтобы без id
+        input_data = create_input_data_list(
+            CREATE_NEW_CONTACT_MENU, default_input_list)
         delete_data(data, data_to_update)
         print("\nИзменены данные:")
         print_data(append_data(data, input_data, result[0]))
@@ -249,21 +254,20 @@ def save_data_main(data):
     try:
         with open(PHONE_BOOK, 'w', encoding='UTF-8') as file:
             global old_data
-            old_data=deepcopy(data)
+            old_data = deepcopy(data)
             write_to_file(data, file)
             print("Данные сохранены.\n")
     except:
         print("Ошибка!\n")
 
 
-
 def quit_phonebook_main(data):
     # выход из меню - получение значения для завершения работы
-    if data!=old_data:
-        input_data=""
-        while input_data not in ["y","n", "Y", "N"]:
-            input_data=input("Сохранить изменения? Y/N =>")
-        if input_data in ["Y","y"]:
+    if data != old_data:
+        input_data = ""
+        while input_data not in ["y", "n", "Y", "N"]:
+            input_data = input("Сохранить изменения? Y/N => ")
+        if input_data in ["Y", "y"]:
             save_data_main(data)
     print("До новых встреч!")
     return "quit"
@@ -295,16 +299,16 @@ def enjoy_phonebook():
         print('Телефонная книга не найдена. Создаем.\n')
         with open(PHONE_BOOK, 'x', encoding='UTF-8') as file:
             file.write(",".join(HEADERS)+"\n")
-            input_data=" "
-            while input_data not in ["y","n", "Y", "N"]:
-                input_data=input("Вставить рандомные данные? Y/N =>")
-            if input_data in ["Y","y"]:
+            input_data = " "
+            while input_data not in ["y", "n", "Y", "N"]:
+                input_data = input("Вставить рандомные данные? Y/N => ")
+            if input_data in ["Y", "y"]:
                 data = append_random_data([], 20)
                 write_to_file(data, file)
                 print('Рандомные данные вставлены.\n')
             else:
-                data=[]
-    global old_data 
+                data = []
+    global old_data
     old_data = deepcopy(data)
     print_menu(data)
 
