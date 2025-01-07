@@ -1,5 +1,5 @@
 # "Книга телефонов"
-## Учебный проект в рамках курса Python
+## Учебный проект в рамках курса Python Developer. Basic
 
 **Что может Книга телефонов**
 - показать все контакты
@@ -12,10 +12,12 @@
 
 **Как начать?**
 
-Все просто: 
 - скачиваем репозиторий
 ###
 	git clone https://github.com/VeraSobal/python-project-phonebook.git
+- переходим в директорий проекта
+###
+	cd cd python-project-phonebook
 - в терминале выполняем 
 ###
 	src/phonebook.py
