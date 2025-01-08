@@ -51,7 +51,7 @@ def max_len(data: list, i):
     return max([len(x[i]) for x in data])
 
 
-def align_data(data, col_length: list):
+def align_data(data: list, col_length: list):
     # форматирование строки (col_length - список с шириной для каждого столбца)
     f_align_data = []
     for item in data:
@@ -72,7 +72,7 @@ def print_lines(lines_qty):
 
 
 @print_lines(1)
-def print_data(data, lines_per_page=20, start_col=0):
+def print_data(data: list, lines_per_page=20, start_col=0):
     # вывод данных на экран в виде таблицы; если start_col=1, то берет данные без id
     col_length = []
     for i in range(len(HEADERS)):
@@ -108,7 +108,7 @@ def check_data(data_item, headers_name):
         return CHECK_PATTERNS_DICT[headers_name]["hint"]
 
 
-def find_data(data, data_to_find, col_index=-1):
+def find_data(data: list, data_to_find, col_index=-1):
     # поиск данных
     find_index = []
     if col_index in list(range(len(HEADERS))):
@@ -124,20 +124,20 @@ def find_data(data, data_to_find, col_index=-1):
         print("Неверная колонка!")
 
 
-def filter_data(data, id):
+def filter_data(data: list, id):
     # получение данных по заданным id
     filter_data = list(filter(lambda x: x[0] in id, data))
     return filter_data
 
 
-def append_data(data: list, data_to_append: list, id: int):
+def append_data(data: list, data_to_append: list, id):
     # Запись новых данных
     data_to_append = [str(id)]+data_to_append
     data.append(data_to_append)
     return [data_to_append]
 
 
-def append_random_data(data: list, qty: int):
+def append_random_data(data: list, qty):
     # Запись новых рандомных данных
     result = []
     for _ in range(qty):
@@ -161,7 +161,7 @@ def update_data(data: list, data_to_update: list):
         data.append(x)
 
 
-def print_all_data_main(data):
+def print_all_data_main(data: list):
     # выполнение пункта Показать все контакты и вывод результата
     print_data(sorted(data, key=lambda x: int(x[0])))
 
@@ -177,7 +177,7 @@ def check_input_data(str_for_input, default_input, headers_name):
     return data_item
 
 
-def create_input_data_list(input_names_list, default_input_list):
+def create_input_data_list(input_names_list: list, default_input_list: list):
     # ввод новых данных
     input_data = []
     for i in range(len(input_names_list)):
@@ -188,7 +188,7 @@ def create_input_data_list(input_names_list, default_input_list):
     return input_data
 
 
-def append_data_main(data):
+def append_data_main(data: list):
     # выполнение пункта Создать контакт и вывод результата
     print("Введите данные")
     default_input_list = [""]*len(CREATE_NEW_CONTACT_MENU)
@@ -199,7 +199,7 @@ def append_data_main(data):
     print_data(append_data(data, input_data, new_id))
 
 
-def find_data_main(data):
+def find_data_main(data: list):
     # выполнение пункта Найти контакт и вывод результата
     for i in range(len(FIND_CONTACT_MENU)):
         print(i, FIND_CONTACT_MENU[i])
@@ -212,7 +212,7 @@ def find_data_main(data):
         print("Данные не найдены.\n")
 
 
-def delete_data_main(data):
+def delete_data_main(data: list):
     # выполнение пункта Удалить контакт и вывод результата
     id_for_delete = input("Введите id контакта для удаления => ")
     result = find_data(data, id_for_delete)
@@ -225,7 +225,7 @@ def delete_data_main(data):
         print("Данные для удаления не найдены.\n")
 
 
-def update_data_main(data):
+def update_data_main(data: list):
     # выполнение пункта Изменить контакт (удалить + внести новые данные)  и вывод результата
     id_for_update = input("Введите id контакта для изменения => ")
     result = find_data(data, id_for_update)
@@ -249,7 +249,7 @@ def write_to_file(data: list, file):
         file.write(",".join(str(x) for x in item)+"\n")
 
 
-def save_data_main(data):
+def save_data_main(data: list):
     # выполнение пункта Сохранить изменения и вывод результата
     try:
         with open(PHONE_BOOK, 'w', encoding='UTF-8') as file:
@@ -261,7 +261,7 @@ def save_data_main(data):
         print("Ошибка!\n")
 
 
-def quit_phonebook_main(data):
+def quit_phonebook_main(data: list):
     # выход из меню - получение значения для завершения работы
     if data != old_data:
         input_data = ""
@@ -273,7 +273,7 @@ def quit_phonebook_main(data):
     return "quit"
 
 
-def print_menu(data):
+def print_menu(data: list):
     # выбор в главном меню
     quit_choice = None
     while quit_choice is None:
