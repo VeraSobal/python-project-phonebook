@@ -20,6 +20,11 @@
 	cd python-project-phonebook
 - в терминале выполняем 
 ###
-	src/phonebook.py
+	./main.py
+
+или
+
+###
+	python main.py
 
 
