@@ -6,10 +6,10 @@ from ..constants import (
     PHONECODES_FILE,
 )
 
-
-def random_data(data: list) -> list:
-    """ Выбирает рандомное значение в списке """
-    return data[random.randint(0, len(data)-1)]
+# Заменена на random.choice
+# def random_data(data: list) -> list:
+#     """ Выбирает рандомное значение в списке """
+#     return data[random.randint(0, len(data)-1)]
 
 
 def random_name() -> tuple:
@@ -17,10 +17,10 @@ def random_name() -> tuple:
     try:
         with open(NAMES_FILE, 'r', encoding='UTF-8') as file:
             file_data = json.load(file)
-        sex = random_data(["male", "female"])
+        sex = random.choice(["male", "female"])
         surnames = file_data[sex]["surname"]
         names = file_data[sex]["name"]
-        return random_data(surnames), random_data(names)
+        return random.choice(surnames), random.choice(names)
     except FileNotFoundError:
         raise RandomDataFileNotFoundError(NAMES_FILE)
 
@@ -33,9 +33,9 @@ def random_phone() -> tuple:
             phonecodes = {}
         for x in file_data:
             phonecodes.setdefault(x[1], x[0])
-        country_code = random_data(file_data)[1]
+        country_code = random.choice(file_data)[1]
         phone_number = country_code+" " + \
-            str(random_data(range(10**(12-len(country_code)+1))))
+            str(random.choice(range(10**(12-len(country_code)+1))))
         country = phonecodes.get(phone_number.split()[0])
         return phone_number, country
     except FileNotFoundError:

@@ -2,7 +2,14 @@ import re
 from copy import deepcopy
 from operator import methodcaller
 from ..model.model import ContactList, Contact, ContactFile
-from ..model.exceptions import PhoneDataFileNotFoundError, RandomDataFileNotFoundError
+from ..model.exceptions import (
+    PhoneDataFileNotFoundError,
+    RandomDataFileNotFoundError,
+    NonUniqueId,
+    NonIntId,
+    CustomException,
+    InvalidHeaders
+)
 from ..view.view import ContactListView
 from ..constants import (
     HEADERS,
@@ -12,14 +19,13 @@ from ..constants import (
 )
 
 
-
 class MenuController():
 
     def __init__(self, filename):
         super().__init__()
         self.filename = filename
-        self.contactlist = ContactList()
-        self.old_contactlist = ContactList()
+        self.contactlist = None
+        self.old_contactlist = None
 
     def __check_data(data_item: str, headers_name: str) -> str:
         """ Проверяет строку данных на соответствие паттерну """
@@ -36,7 +42,9 @@ class MenuController():
             if default_input == "=":
                 hint = None
             if hint:
-                print(hint + " Повторите ввод данных.")
+                data_item=None
+                raise CustomException(f"{hint}. Повторите ввод данных.\n")
+                #print(hint + " Повторите ввод данных.")
         return data_item
 
     def __create_input_data_list(input_names_list: list, default_input_list: list) -> list:
@@ -53,7 +61,7 @@ class MenuController():
         data = None
         value_dict = None
         id = input("Введите id контакта => ")
-        if id:
+        if id=="":
             value_dict = {"id": ""}
         if id.isnumeric():
             value_dict = {"id": int(id)}
@@ -68,42 +76,54 @@ class MenuController():
         """ выполнение пункта Показать все контакты и вывод результата """
         all_data = self.contactlist.sort_contactlist()
         ContactListView.display_contact_list(all_data)
+        return all_data
 
     def append_data_main(self):
         """ Выполнение пункта Создать контакт и вывод результата """
         print("Введите данные")
         default_input_list = [""]*len(CREATE_NEW_CONTACT_MENU)
-        input_data = MenuController.__create_input_data_list(
-            CREATE_NEW_CONTACT_MENU, default_input_list)
-        print("\nДобавлены данные:")
-        new_contact = Contact(*input_data)
-        self.contactlist.append_contact(new_contact)
-        found_data = self.contactlist.find(new_contact.data)
-        ContactListView.display_contact_list(found_data)
+        try:
+            input_data = MenuController.__create_input_data_list(
+                CREATE_NEW_CONTACT_MENU, default_input_list)
+            print("\nДобавлены данные:")
+            new_contact = Contact(*input_data)
+            self.contactlist.append_contact(new_contact)
+            found_data = self.contactlist.find(new_contact.data)
+            # return found_data
+            ContactListView.display_contact_list(found_data)
+        except CustomException as e:
+            print(e)
 
-    def find_data_main(self):
+    def find_data_main(self)->'ContactList':
         """ Выполнение пункта Найти контакт и вывод результата """
         print("Введите данные для поиска или нажмите ввод для пропуска поля")
         data_from_id, value_dict = self.find_data_from_id()
-        if value_dict and data_from_id is None:
-            print("Данные не найдены.\n")
+        if value_dict!={"id":""} and data_from_id is None:
+            print("Данные по id не найдены.\n")
         elif data_from_id and value_dict:
             ContactListView.display_contact_list(data_from_id)
+            return data_from_id
         else:
             default_input_list = ["="]*len(CREATE_NEW_CONTACT_MENU)
-            input_data = MenuController.__create_input_data_list(
-                CREATE_NEW_CONTACT_MENU, default_input_list)
-            value_dict = dict([(x, y) for (x, y) in zip(
+            try:
+                input_data = MenuController.__create_input_data_list(
+                    CREATE_NEW_CONTACT_MENU, default_input_list)
+                value_dict = dict([(x, y) for (x, y) in zip(
                 HEADERS[1:], input_data) if y != "="])
-            input_all_fields = input("Поиск по всем полям = =>")
-            if input_all_fields:
-                value_dict.setdefault("*", input_all_fields)
-            result = self.contactlist.find_id(value_dict)
-            if result:
-                found_data = self.contactlist.find(value_dict)
-                ContactListView.display_contact_list(found_data)
-            else:
-                print("Данные не найдены.\n")
+                input_all_fields = input("Поиск по всем полям = =>")
+                if input_all_fields:
+                    value_dict.setdefault("*", input_all_fields)
+                result = self.contactlist.find_id(value_dict)
+                print(value_dict)
+                if result:
+                    found_data = self.contactlist.find(value_dict)
+                    ContactListView.display_contact_list(found_data)
+                    return found_data
+                else:
+                    print("Данные не найдены.\n")
+            except CustomException as e:
+                print(e)
+            
 
     def remove_data_main(self):
         """ Выполнение пункта Удалить контакт и вывод результата """
@@ -111,6 +131,7 @@ class MenuController():
         data_to_delete, value_dict = self.find_data_from_id()
         if data_to_delete:
             print("\nУдалены данные:")
+            # return data_to_delete
             ContactListView.display_contact_list(data_to_delete)
             self.contactlist.remove(value_dict)
         else:
@@ -120,19 +141,25 @@ class MenuController():
         """ Выполнение пункта Изменить контакт (удалить + внести новые данные)  и вывод результата """
         print("Для изменения:")
         data_to_update, value_dict = self.find_data_from_id()
-        id = value_dict["id"]
         if data_to_update:
+            id = value_dict["id"]
             default_input_list = []
             for item in data_to_update.data[id]:
+                print(item)
                 default_input_list.append(item[1])
-            input_data = MenuController.__create_input_data_list(
-                CREATE_NEW_CONTACT_MENU, default_input_list)
-            self.contactlist.remove(value_dict)
-            print("\nИзменены данные:")
-            new_contact = Contact(*input_data)
-            self.contactlist.append_contact(new_contact, id)
-            found_data = self.contactlist.find(value_dict)
-            ContactListView.display_contact_list(found_data)
+            print(default_input_list)
+            try:
+                input_data = MenuController.__create_input_data_list(
+                    CREATE_NEW_CONTACT_MENU, default_input_list)
+                self.contactlist.remove(value_dict)
+                print("\nИзменены данные:")
+                new_contact = Contact(*input_data)
+                self.contactlist.append_contact(new_contact, id)
+                found_data = self.contactlist.find(value_dict)
+                # return found_data
+                ContactListView.display_contact_list(found_data)
+            except CustomException as e:
+                print(e)
         else:
             print("Данные для изменения не найдены.\n")
 
@@ -153,6 +180,7 @@ class MenuController():
             while input_data not in ["y", "n", "Y", "N"]:
                 input_data = input("Сохранить изменения? Y/N => ")
             if input_data in ["Y", "y"]:
+                pass
                 self.save_data_main()
         print("До новых встреч!")
         return "quit"
@@ -165,35 +193,45 @@ class MenuController():
             if MENU_DICT.get(choice):
                 method = methodcaller(MENU_DICT.get(choice)["def_name"])
                 method(self)
-                if MENU_DICT.get(choice)["def_name"]=="quit_phonebook_main":
-                    quit_choice=1
+                if MENU_DICT.get(choice)["def_name"] == "quit_phonebook_main":
+                    quit_choice = 1
             else:
                 print("Ошибка ввода.\n")
 
-    def enjoy_phonebook(self):
-        """ Открытие существующей телефонной книги или создание новой, если ее нет """
-        ContactListView.display_hello()
+    def load_phonebook_data(self):
         try:
             with ContactFile(self.filename, "read") as phonebook:
                 self.contactlist = phonebook.csv_import()
                 self.old_contactlist = deepcopy(self.contactlist)
-        except:
-            self.old_contactlist=ContactList()
-            print('Телефонная книга не найдена. Создаем.\n')
+        except NonIntId as e:
+            print(f"{self.filename} не соответствует требованиям: {e}")
+        except NonUniqueId as e:
+            print(f"{self.filename} не соответствует требованиям: {e}")
+        except InvalidHeaders as e:
+            print(f"{self.filename} не соответствует требованиям: {e}")
+        except PhoneDataFileNotFoundError as e:
+            #self.old_contactlist = ContactList()
+            print(f'Телефонная книга {self.filename} не найдена. Создаем.\n')
             input_data = " "
             while input_data not in ["y", "n", "Y", "N"]:
                 input_data = input("Сгенерировать рандомные данные? Y/N => ")
-            if input_data not in ["Y", "y"]:
-                self.contactlist = ContactList()
-            else:
+            if input_data in ["N", "n"]:
+                self.contactlist=ContactList()
+            if input_data in ["Y", "y"]:
                 try:
                     self.contactlist = ContactList().generate_random(10)
                     print('Рандомные данные вставлены.\n')
                 except RandomDataFileNotFoundError as e:
                     print(f"DataFileNotFoundError = > {e}")
-        self.print_menu()
+
+    def enjoy_phonebook(self):
+        """ Открытие существующей телефонной книги или создание новой, если ее нет """
+        ContactListView.display_hello()
+        self.load_phonebook_data()
+        if self.contactlist:
+            self.print_menu()
 
 
 def main(filename: str):
-    cc = MenuController(filename)
-    cc.enjoy_phonebook()
+    mc = MenuController(filename)
+    mc.enjoy_phonebook()

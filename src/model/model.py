@@ -5,7 +5,9 @@ from .exceptions import (
     PhoneDataFileNotFoundError,
     FieldNotFound,
     NotDictionaryFormat,
-    NonUniqueId
+    NonUniqueId,
+    NonIntId,
+    InvalidHeaders
 )
 from ..constants import (
     CHECK_PATTERNS_DICT,
@@ -21,7 +23,10 @@ class Contact:
         self.start = -1
 
     def __eq__(self, other):
-        return (self.data == other.data)
+        if isinstance(other, Contact):
+            return self.data == other.data
+        elif isinstance(other, dict):
+            return dict(self.data) == other
 
     def __iter__(self):
         return self
@@ -30,6 +35,7 @@ class Contact:
         self.start += 1
         if self.start < len(self.data.items()):
             return list(self.data.items())[self.start]
+        self.start=-1
         raise StopIteration
 
     @classmethod
@@ -67,9 +73,6 @@ class Contact:
         print_str = "| ".join(headers)+"\n"+"| ".join(print_item)+"\n"
         return print_str
 
-    def __repr__(self) -> dict:
-        return str(self.data)
-
     def isfound(self,  value_dict: dict) -> bool:
         """Проверяет соответствие значения поля значению этого поля контакте.
         если передается словарь c условием  "имя поля":"значение", то значение ищется только в этом поле контакта
@@ -87,7 +90,6 @@ class Contact:
                         if string in list_for_search:
                             result = True
                     else:
-                        # print("Такого поля нет")
                         return None
                 elif str(value).strip().lower() != self.data[key].lower().strip():
                     result = False
@@ -101,8 +103,14 @@ class ContactList():
         self.start = -1
 
     def __eq__(self, other):
-        return (self.data == other.data)
-
+        if isinstance(other, ContactList):
+            return self.data == other.data
+        if isinstance(other, dict):
+            contactlist_dict={}
+            for item, data in self.data.items():
+                contactlist_dict.setdefault(item, dict(data))
+            return contactlist_dict==other
+            
     def __getitem__(self, id):
         if id in self.data.keys():
             return self.data[id]
@@ -114,6 +122,7 @@ class ContactList():
         self.start += 1
         if self.start < len(self.data.items()):
             return list(self.data.items())[self.start]
+        self.start=-1
         raise StopIteration
 
     @property
@@ -127,7 +136,7 @@ class ContactList():
         if id == -1:
             id = self.new_id
         if id in self.data.keys():
-            raise NonUniqueId
+            raise NonUniqueId(id)
         elif isinstance(contact, Contact):
             self.data[id] = contact
         else:
@@ -218,18 +227,15 @@ class ContactFile:
 
     def __enter__(self):
         if self.option == "write":
-            opt = "w"
-        elif self.option == "read":  # если файл отсутствует, то создает его
-            opt = "r"
-            try:
-                open(self.filename, opt, encoding='UTF-8')
-            except:
-                opt = "x"
-        try:
-            self.file = open(self.filename, opt, encoding='UTF-8')
+            self.file = open(self.filename, "w", encoding='UTF-8')
             return self
-        except FileNotFoundError:
-            raise PhoneDataFileNotFoundError(self.filename)
+        elif self.option == "read":
+            try:
+                self.file = open(self.filename, "r", encoding='UTF-8')
+                return self
+            except:
+                raise PhoneDataFileNotFoundError(self.filename)
+            
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self.file:
@@ -239,11 +245,23 @@ class ContactFile:
         """ Импортирует данные из файла csv в ContactList"""
         data = csv.DictReader(self.file, delimiter=',', quotechar='"')
         contact_list = ContactList()
-        for item in list(data):
-            """Здесь вставить исключение!!!"""
-            id = int(item["id"])
-            contact = Contact(*list(item.values())[1:])
-            contact_list.append_contact(contact, id)
+        if data.fieldnames!=HEADERS:
+            raise InvalidHeaders(self.filename)
+        try:
+            for item in list(data):
+                if item["id"].isnumeric():
+                    id = int(item["id"])
+                else:
+                    raise NonIntId(item["id"])
+                contact = Contact(*list(item.values())[1:])
+                try:
+                    contact_list.append_contact(contact, id)
+                except NonUniqueId as e:
+                    raise e
+        except NonIntId as e:
+            raise e
+        except NonUniqueId as e:
+            raise e
         return contact_list
 
     def csv_export(self, contact_list: ContactList):
@@ -257,5 +275,4 @@ class ContactFile:
         self.file.write(string)
 
 
-class ContactListException:
-    pass
+
