@@ -18,7 +18,7 @@
 - переходим в директорий проекта
 ###
 	cd python-project-phonebook
-- в терминале выполняем 
+- в терминале выполняем
 ###
 	./main.py
 
@@ -27,4 +27,7 @@
 ###
 	python main.py
 
+или с именем файла, например:
 
+###
+	python main.py './data/phonebook.csv'

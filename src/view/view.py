@@ -1,5 +1,5 @@
 import re
-from ..model.model import Contact, ContactList
+#from ..model.model import Contact, ContactList
 from ..constants import(
     MENU_DICT,
     CHECK_PATTERNS_DICT,
@@ -14,13 +14,13 @@ class PhonebookView:
         pass
 
     @staticmethod
-    def display_contact(contact: Contact):
+    def display_contact(contact: 'Contact'):
         """Отображает контакт"""
         print(contact)
         print()
 
     @staticmethod
-    def display_contact_list(contactlist: ContactList):
+    def display_contact_list(contactlist: 'ContactList'):
         """Отображает список контактов"""
         print("Результат:")
         print(contactlist)
