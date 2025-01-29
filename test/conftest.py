@@ -1,9 +1,9 @@
 import os
 import pytest
 from copy import deepcopy
-from src.controller.controller import MenuController
-from src.model.model import ContactFile
-from src.constants import HEADERS
+from ..src.controller.controller import MenuController
+from ..src.model.model import ContactFile
+from ..src.constants import HEADERS
 
 
 @pytest.fixture(scope="class")

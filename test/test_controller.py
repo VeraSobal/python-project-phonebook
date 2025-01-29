@@ -3,10 +3,10 @@
 
 import pytest
 from functools import wraps
-from ..controller.controller import MenuController
-from ..constants import CHECK_PATTERNS_DICT
-from ..model.model import Contact
-from ..model.exceptions import *
+from ..src.controller.controller import MenuController
+from ..src.constants import CHECK_PATTERNS_DICT
+from ..src.model.model import Contact
+from ..src.model.exceptions import *
 
 
 def input_value(*param):
