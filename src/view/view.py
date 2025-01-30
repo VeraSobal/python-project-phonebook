@@ -1,5 +1,4 @@
 import re
-#from ..model.model import Contact, ContactList
 from ..constants import(
     MENU_DICT,
     CHECK_PATTERNS_DICT,
@@ -88,7 +87,6 @@ class PhonebookView:
             if hint:
                 data_item=None
                 raise CustomException(f"{hint}. Повторите ввод данных.\n")
-                #print(hint + " Повторите ввод данных.")
         return data_item
 
     @staticmethod

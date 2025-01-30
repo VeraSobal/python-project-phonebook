@@ -1,4 +1,3 @@
-import sys
 from copy import deepcopy
 from operator import methodcaller
 from ..model.model import ContactList, Contact, ContactFile
@@ -194,7 +193,7 @@ class MenuController():
                         f"DataFileNotFoundError = > {e}")
 
 
-def enjoy_phonebook(filename=PHONE_BOOK):
+def enjoy_phonebook(filename):
     """ Открытие существующей телефонной книги или создание новой, если ее нет """
     mc = MenuController(filename)
     PhonebookView.display_hello()
@@ -203,4 +202,4 @@ def enjoy_phonebook(filename=PHONE_BOOK):
         mc.print_menu()
 
 def main(filename=PHONE_BOOK):
-    enjoy_phonebook()
+    enjoy_phonebook(filename)
